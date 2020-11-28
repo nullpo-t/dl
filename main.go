@@ -36,7 +36,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }).Methods(http.MethodGet)
-	r.HandleFunc("/download", handler.Download).Methods(http.MethodPost)
+	r.HandleFunc("/", handler.Download).Methods(http.MethodPost)
 	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir(staticDIR)))).Methods(http.MethodGet)
 
 	srv := &http.Server{Addr: address, Handler: r}
