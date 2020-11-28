@@ -43,11 +43,13 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Cache data.
+	isReturn := false
 	onceZDownload.Do(func() {
 		items, err := h.IL.LoadItems()
 		if err != nil {
 			logf(ERROR, "could not load item list: %v", err)
 			writeInternalError(w)
+			isReturn = true
 			return
 		}
 		h.items = items
@@ -56,10 +58,14 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logf(ERROR, "could not load card list: %v", err)
 			writeInternalError(w)
+			isReturn = true
 			return
 		}
 		h.cards = cards
 	})
+	if isReturn {
+		return
+	}
 
 	inputKey := r.FormValue("dlkey")
 	logf(INFO, "POST key=%v", inputKey)
