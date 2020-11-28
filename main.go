@@ -10,28 +10,51 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"time"
 
 	"github.com/gorilla/mux"
 )
 
-// ProjectID defines GCP project ID.
-var ProjectID string
+// App Global Parameters.
+const (
+	// ComponentName defines the name of this component for logging.
+	// Cloud Log Viewer can filter this value.
+	// Omitempty.
+	ComponentName = ""
+
+	GCSPathItems     = "items.json"
+	GCSPathCards     = "cards.json"
+	GCSAccessTimeout = 10 * time.Second
+	GCSURLDuration   = 5 * time.Minute
+)
+
+// App Global Variables.
+var (
+	// ProjectID defines GCP project ID.
+	ProjectID string
+
+	// onceZlogf is used in logf.
+	onceZlogf sync.Once
+
+	// onceZDownload is userd in Handler.Download.
+	onceZDownload sync.Once
+)
 
 func main() {
 	ProjectID = os.Getenv("DL_GCP_ID")
-	itemsURI := os.Getenv("DL_GCS_ITEMS")
-	cardsURI := os.Getenv("DL_GCS_CARDS")
+	appBucket := os.Getenv("DL_GCS_APP_BUCKET")
+	dataBucket := os.Getenv("DL_GCS_DATA_BUCKET")
 	port := os.Getenv("PORT")
 
 	staticDIR := "static"
 	address := fmt.Sprintf("0.0.0.0:%s", port)
 
-	if ProjectID == "" || cardsURI == "" || itemsURI == "" || port == "" {
+	if ProjectID == "" || appBucket == "" || dataBucket == "" || port == "" {
 		logf(EMERGENCY, "some environment variables are empty")
 		os.Exit(1)
 	}
 
-	adp := NewGCSAdapter()
+	adp := NewGCSAdapter(appBucket, dataBucket)
 	handler := NewHandler(adp, adp, adp, adp)
 
 	r := mux.NewRouter()
@@ -71,6 +94,8 @@ func main() {
 	logf(NOTICE, "exit(0)")
 }
 
+// Logging.
+
 // Severity defines a log severity.
 type Severity string
 
@@ -100,14 +125,8 @@ func (e Entry) String() string {
 	return string(j)
 }
 
-// ComponentName defines the name of this component for logging.
-// We can filter this value in Cloud Log Viewer.
-const ComponentName = "" // omitempty
-
-var once sync.Once
-
 func logf(severity Severity, msgFmt string, args ...interface{}) {
-	once.Do(func() {
+	onceZlogf.Do(func() {
 		// Disable adding log prefix as it will prevent jsonify.
 		log.SetFlags(0)
 	})

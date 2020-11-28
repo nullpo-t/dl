@@ -19,7 +19,7 @@ gcloud run deploy $DL_APP_NAME \
   --platform managed \
   --memory=128Mi --cpu=1000m \
   --max-instances=1 \
-  --set-env-vars=[PORT=$PORT,DL_GCP_ID=$DL_GCP_ID,DL_GCS_ITEMS=$DL_GCS_ITEMS,DL_GCS_CARDS=$DL_GCS_CARDS] \
+  --set-env-vars=[PORT=$PORT,DL_GCP_ID=$DL_GCP_ID,DL_GCS_APP_BUCKET=$DL_GCS_APP_BUCKET,DL_GCS_DATA_BUCKET=$DL_GCS_DATA_BUCKET] \
   --region=asia-northeast1 \
   --service-account=$DL_GCP_RUN_SERVICE_ACCOUNT \
   --allow-unauthenticated
