@@ -88,7 +88,7 @@ const (
 type Entry struct {
 	Severity  string `json:"severity"`
 	Message   string `json:"message"`
-	Component string `json:"component"`
+	Component string `json:"component,omitempty"`
 	Trace     string `json:"logging.googleapis.com/trace,omitempty"`
 }
 
@@ -102,7 +102,7 @@ func (e Entry) String() string {
 
 // ComponentName defines the name of this component for logging.
 // We can filter this value in Cloud Log Viewer.
-const ComponentName = "dl.nullpo-t.net"
+const ComponentName = "" // omitempty
 
 var once sync.Once
 
