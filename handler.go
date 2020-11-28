@@ -121,7 +121,7 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeResponse(w, http.StatusOK, `<a href="%s" target="_blank">Download</a>`, dlURL)
+	writeResponse(w, http.StatusOK, `<a href="%s" target="_blank">%s</a>`, dlURL, item.Name)
 }
 
 // Close closes the Handler.

@@ -8,6 +8,13 @@ Gen 1 was https://github.com/ebiiim/easy-distributor.
 
 ## Changelog
 
+### 1.1.0 - 2020-11-29
+
+#### Changed
+
+- Display item name on download page.
+- Minor changes on top page (use form-row class instead of form-inline).
+
 ### 1.0.0 - 2020-11-29
 
-First release!
+- First release!
