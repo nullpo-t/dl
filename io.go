@@ -59,6 +59,7 @@ type URLIssuer interface {
 type GCSAdapter struct {
 	appBucket  string
 	dataBucket string
+	client     *storage.Client
 }
 
 var (
@@ -76,25 +77,23 @@ func NewGCSAdapter(appBucket, dataBucket string) *GCSAdapter {
 
 // LoadItems loads a list of items from GCS.
 func (a *GCSAdapter) LoadItems() (map[string]*Item, error) {
+	if err := a.initClientIfNeeded(); err != nil {
+		return nil, err
+	}
 	ctx := context.Background()
 	ctx, cancelFunc := context.WithTimeout(ctx, GCSAccessTimeout)
 	defer cancelFunc()
-	creds, err := google.FindDefaultCredentials(ctx, storage.ScopeReadOnly)
-	if err != nil {
-		return nil, err
-	}
-	client, err := storage.NewClient(ctx, option.WithCredentials(creds))
-	if err != nil {
-		return nil, err
-	}
-	obj := client.Bucket(a.appBucket).Object(GCSPathItems)
+	logf(DEBUG, "LoadItems: read GCS")
+	obj := a.client.Bucket(a.appBucket).Object(GCSPathItems)
 	reader, err := obj.NewReader(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer reader.Close()
 	items := make(map[string]*Item)
 	if err := json.NewDecoder(reader).Decode(&items); err != nil {
+		return nil, err
+	}
+	if err := reader.Close(); err != nil {
 		return nil, err
 	}
 	return items, nil
@@ -102,18 +101,14 @@ func (a *GCSAdapter) LoadItems() (map[string]*Item, error) {
 
 // LoadCards loads download cards from GCS.
 func (a *GCSAdapter) LoadCards() (map[string]*DownloadCard, error) {
+	if err := a.initClientIfNeeded(); err != nil {
+		return nil, err
+	}
 	ctx := context.Background()
 	ctx, cancelFunc := context.WithTimeout(ctx, GCSAccessTimeout)
 	defer cancelFunc()
-	creds, err := google.FindDefaultCredentials(ctx, storage.ScopeReadOnly)
-	if err != nil {
-		return nil, err
-	}
-	client, err := storage.NewClient(ctx, option.WithCredentials(creds))
-	if err != nil {
-		return nil, err
-	}
-	obj := client.Bucket(a.appBucket).Object(GCSPathCards)
+	logf(DEBUG, "LoadCards: read GCS")
+	obj := a.client.Bucket(a.appBucket).Object(GCSPathCards)
 	reader, err := obj.NewReader(ctx)
 	if err != nil {
 		return nil, err
@@ -128,24 +123,18 @@ func (a *GCSAdapter) LoadCards() (map[string]*DownloadCard, error) {
 
 // UpdateCards updates download cards and uploads them to GCS.
 func (a *GCSAdapter) UpdateCards(cards map[string]*DownloadCard) error {
+	if err := a.initClientIfNeeded(); err != nil {
+		return err
+	}
 	ctx := context.Background()
 	ctx, cancelFunc := context.WithTimeout(ctx, GCSAccessTimeout)
 	defer cancelFunc()
-	creds, err := google.FindDefaultCredentials(ctx, storage.ScopeReadWrite)
-	if err != nil {
-		return err
-	}
-	client, err := storage.NewClient(ctx, option.WithCredentials(creds))
-	if err != nil {
-		return err
-	}
-	obj := client.Bucket(a.appBucket).Object(GCSPathCards)
+	logf(DEBUG, "UpdateCards: write GCS")
+	obj := a.client.Bucket(a.appBucket).Object(GCSPathCards)
 	writer := obj.NewWriter(ctx)
-
 	if err := json.NewEncoder(writer).Encode(&cards); err != nil {
 		return err
 	}
-
 	// Writes happen asynchronously!
 	if err := writer.Close(); err != nil {
 		return err
@@ -166,6 +155,7 @@ func (a *GCSAdapter) IssueURL(filename string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	logf(INFO, "issue a SignedURL for %v", filename)
 	opts := &storage.SignedURLOptions{
 		GoogleAccessID: conf.Email,
 		PrivateKey:     conf.PrivateKey,
@@ -177,4 +167,24 @@ func (a *GCSAdapter) IssueURL(filename string) (string, error) {
 		return "", err
 	}
 	return url, nil
+}
+
+func (a *GCSAdapter) initClientIfNeeded() error {
+	if a.client != nil {
+		return nil
+	}
+	logf(INFO, "initialize GCS client")
+	ctx := context.Background()
+	ctx, cancelFunc := context.WithTimeout(ctx, GCSAccessTimeout)
+	defer cancelFunc()
+	creds, err := google.FindDefaultCredentials(ctx, storage.ScopeReadWrite)
+	if err != nil {
+		return err
+	}
+	client, err := storage.NewClient(ctx, option.WithCredentials(creds))
+	if err != nil {
+		return err
+	}
+	a.client = client
+	return nil
 }
