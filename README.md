@@ -8,6 +8,13 @@ Gen 1 was https://github.com/ebiiim/easy-distributor.
 
 ## Changelog
 
+### 1.2.0 - 2020-11-30
+
+#### Changed
+
+- Reuse GCS client.
+- Sanitize and capitalize user input.
+
 ### 1.1.0 - 2020-11-29
 
 #### Changed
