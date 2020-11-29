@@ -60,6 +60,8 @@
         if (paramKey) inputKey.value = paramKey;
 
         let checkInput = () => {
+            // to uppercase -> remove non 0-9A-Z characters -> keep first 8 characters
+            inputKey.value = inputKey.value.toUpperCase().replace(/[^0-9A-Z]/g, '').substring(0, 8);
             if (inputKey.value === '') btnSubmit.disabled = true;
             else btnSubmit.disabled = false;
         }
