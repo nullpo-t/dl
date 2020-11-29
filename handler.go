@@ -47,6 +47,7 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 	// Cache data.
 	isReturn := false
 	onceZDownload.Do(func() {
+		logf(INFO, "cache items")
 		items, err := h.IL.LoadItems()
 		if err != nil {
 			logf(ERROR, "could not load item list: %v", err)
@@ -56,6 +57,7 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 		}
 		h.items = items
 
+		logf(INFO, "cache cards")
 		cards, err := h.CL.LoadCards()
 		if err != nil {
 			logf(ERROR, "could not load card list: %v", err)
