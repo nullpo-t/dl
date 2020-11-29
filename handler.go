@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 )
@@ -67,12 +69,12 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inputKey := r.FormValue("dlkey")
-	logf(INFO, "POST key=%v", inputKey)
+	key := sanitizeDLKey(r.FormValue("dlkey"))
+	logf(INFO, "POST key=%v", key)
 
-	card, ok := h.cards[inputKey]
+	card, ok := h.cards[key]
 	if !ok {
-		logf(INFO, "invalid key: %+v", inputKey)
+		logf(INFO, "invalid key: %+v", key)
 		writeResponse(w, http.StatusOK, "invalid download key; if you are sure this is an error, please contact us")
 		return
 	}
@@ -90,7 +92,7 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.cards = cards
-	card, _ = h.cards[inputKey]
+	card, _ = h.cards[key]
 
 	// Check download count.
 	if card.CountNow >= card.CoundMax {
@@ -122,6 +124,18 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeResponse(w, http.StatusOK, `<a href="%s" target="_blank">%s</a>`, dlURL, item.Name)
+}
+
+// sanitizeDLkey checks k is only including [0-9A-Za-z] and its length is 0-8,
+// then convert it to uppercase and return.
+// If failed, just return "".
+// TODO: do some tests
+func sanitizeDLKey(k string) string {
+	re := regexp.MustCompile(`^[0-9A-Za-z]{0,8}$`)
+	if !re.MatchString(k) {
+		return ""
+	}
+	return strings.ToUpper(k)
 }
 
 // Close closes the Handler.
