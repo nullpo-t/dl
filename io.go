@@ -144,15 +144,25 @@ func (a *GCSAdapter) UpdateCards(cards map[string]*DownloadCard) error {
 
 // IssueURL issues a GCS presigned URL.
 func (a *GCSAdapter) IssueURL(filename string) (string, error) {
-	if err := a.initClientIfNeeded(); err != nil {
+	ctx := context.Background()
+	ctx, cancelFunc := context.WithTimeout(ctx, GCSAccessTimeout)
+	defer cancelFunc()
+	creds, err := google.FindDefaultCredentials(ctx, storage.ScopeReadOnly)
+	if err != nil {
+		return "", err
+	}
+	conf, err := google.JWTConfigFromJSON(creds.JSON, storage.ScopeReadOnly)
+	if err != nil {
 		return "", err
 	}
 	logf(INFO, "issue a SignedURL for %v", filename)
 	opts := &storage.SignedURLOptions{
-		Method:  http.MethodGet,
-		Expires: time.Now().Add(GCSURLDuration),
+		GoogleAccessID: conf.Email,
+		PrivateKey:     conf.PrivateKey,
+		Method:         http.MethodGet,
+		Expires:        time.Now().Add(GCSURLDuration),
 	}
-	url, err := a.client.Bucket(a.dataBucket).SignedURL(filename, opts)
+	url, err := storage.SignedURL(a.dataBucket, filename, opts)
 	if err != nil {
 		return "", err
 	}

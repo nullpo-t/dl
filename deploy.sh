@@ -19,7 +19,7 @@ gcloud run deploy $DL_APP_NAME \
   --platform managed \
   --memory=128Mi --cpu=1000m \
   --max-instances=1 \
-  --set-env-vars=DL_GCP_ID=$DL_GCP_ID,DL_GCS_APP_BUCKET=$DL_GCS_APP_BUCKET,DL_GCS_DATA_BUCKET=$DL_GCS_DATA_BUCKET \
+  --set-env-vars=DL_GCP_ID=$DL_GCP_ID,DL_GCS_APP_BUCKET=$DL_GCS_APP_BUCKET,DL_GCS_DATA_BUCKET=$DL_GCS_DATA_BUCKET,GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS \
   --region=asia-northeast1 \
   --service-account=$DL_GCP_RUN_SERVICE_ACCOUNT \
   --allow-unauthenticated
