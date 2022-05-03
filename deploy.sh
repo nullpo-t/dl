@@ -13,11 +13,11 @@ docker build -t gcr.io/$DL_GCP_ID/$DL_APP_NAME:$DL_VERSION .
 docker push gcr.io/$DL_GCP_ID/$DL_APP_NAME:$DL_VERSION
 
 # deploy
-# --max-instances=1 avoids potential GCS read/write race condition
+# sets --max-instances=1 to avoid data conflict; **this app is not safe to run multiple instances**
 gcloud run deploy $DL_APP_NAME \
   --image gcr.io/$DL_GCP_ID/$DL_APP_NAME:$DL_VERSION \
   --platform managed \
-  --memory=128Mi --cpu=1000m \
+  --memory=128Mi --cpu=500m \
   --max-instances=1 \
   --set-env-vars=DL_GCP_ID=$DL_GCP_ID,DL_GCS_APP_BUCKET=$DL_GCS_APP_BUCKET,DL_GCS_DATA_BUCKET=$DL_GCS_DATA_BUCKET \
   --region=asia-northeast1 \
