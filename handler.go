@@ -157,7 +157,7 @@ const htmlFmt = `<!DOCTYPE html>
 </body>
 </html>`
 
-func writeResponse(w http.ResponseWriter, statusCode int, htmlBodyFmt string, args ...interface{}) {
+func writeResponse(w http.ResponseWriter, statusCode int, htmlBodyFmt string, args ...any) {
 	w.WriteHeader(statusCode)
 	fmt.Fprintf(w, htmlFmt, fmt.Sprintf(htmlBodyFmt, args...))
 }

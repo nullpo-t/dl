@@ -125,7 +125,7 @@ func (e Entry) String() string {
 	return string(j)
 }
 
-func logf(severity Severity, msgFmt string, args ...interface{}) {
+func logf(severity Severity, msgFmt string, args ...any) {
 	onceZlogf.Do(func() {
 		// Disable adding log prefix as it will prevent jsonify.
 		log.SetFlags(0)
