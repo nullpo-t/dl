@@ -82,7 +82,7 @@ func main() {
 		}
 	}()
 
-	sigCh := make(chan os.Signal)
+	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
 	<-sigCh
 	logf(NOTICE, "SIGINT received")
