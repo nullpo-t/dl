@@ -3,7 +3,7 @@
 set -x
 
 # load .env
-set -o allexport; source .env; set +o allexport
+set -o allexport; source ./.env; set +o allexport
 
 # set GCP project
 gcloud config set project $DL_GCP_ID
@@ -13,7 +13,7 @@ docker build -t gcr.io/$DL_GCP_ID/$DL_APP_NAME:$DL_VERSION .
 docker push gcr.io/$DL_GCP_ID/$DL_APP_NAME:$DL_VERSION
 
 # deploy
-# --max-instances=1 avoids potential GCS read/write race condition
+# sets --max-instances=1 to avoid data conflict; **this app is not safe to run multiple instances**
 gcloud run deploy $DL_APP_NAME \
   --image gcr.io/$DL_GCP_ID/$DL_APP_NAME:$DL_VERSION \
   --platform managed \

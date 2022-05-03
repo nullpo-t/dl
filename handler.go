@@ -74,7 +74,7 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 	key := sanitizeDLKey(r.FormValue("dlkey"))
 	logf(INFO, "POST key=%v", key)
 
-	card, ok := h.cards[key]
+	_, ok := h.cards[key]
 	if !ok {
 		logf(INFO, "invalid key: %+v", key)
 		writeResponse(w, http.StatusOK, "invalid download key; if you are sure this is an error, please contact us")
@@ -94,20 +94,12 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.cards = cards
-	card, _ = h.cards[key]
+	card := h.cards[key]
 
 	// Check download count.
 	if card.CountNow >= card.CoundMax {
 		logf(INFO, "count is max: %+v", card)
 		writeResponse(w, http.StatusOK, "download count exceeded; please contact us if you want to do it")
-		return
-	}
-
-	// Increment download count.
-	card.CountNow++
-	if err := h.CU.UpdateCards(h.cards); err != nil {
-		logf(ERROR, "could not upload card list: %v", err)
-		writeInternalError(w)
 		return
 	}
 
@@ -121,6 +113,14 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 	dlURL, err := h.UI.IssueURL(item.URI)
 	if err != nil {
 		logf(ERROR, "could not issue URL: %v", err)
+		writeInternalError(w)
+		return
+	}
+
+	// Increment download count.
+	card.CountNow++
+	if err := h.CU.UpdateCards(h.cards); err != nil {
+		logf(ERROR, "could not upload card list: %v", err)
 		writeInternalError(w)
 		return
 	}
@@ -157,7 +157,7 @@ const htmlFmt = `<!DOCTYPE html>
 </body>
 </html>`
 
-func writeResponse(w http.ResponseWriter, statusCode int, htmlBodyFmt string, args ...interface{}) {
+func writeResponse(w http.ResponseWriter, statusCode int, htmlBodyFmt string, args ...any) {
 	w.WriteHeader(statusCode)
 	fmt.Fprintf(w, htmlFmt, fmt.Sprintf(htmlBodyFmt, args...))
 }

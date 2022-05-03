@@ -82,7 +82,7 @@ func main() {
 		}
 	}()
 
-	sigCh := make(chan os.Signal)
+	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
 	<-sigCh
 	logf(NOTICE, "SIGINT received")
@@ -125,7 +125,7 @@ func (e Entry) String() string {
 	return string(j)
 }
 
-func logf(severity Severity, msgFmt string, args ...interface{}) {
+func logf(severity Severity, msgFmt string, args ...any) {
 	onceZlogf.Do(func() {
 		// Disable adding log prefix as it will prevent jsonify.
 		log.SetFlags(0)

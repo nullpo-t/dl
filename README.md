@@ -8,6 +8,13 @@ Gen 1 was https://github.com/ebiiim/easy-distributor.
 
 ## Changelog
 
+### 1.3.0 - 2022-05-03
+
+#### Changed
+
+- Go 1.15 -> Go 1.18
+- Upgrade dependencies.
+
 ### 1.2.0 - 2020-11-30
 
 #### Changed
