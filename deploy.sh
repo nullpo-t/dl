@@ -3,7 +3,7 @@
 set -x
 
 # load .env
-set -o allexport; source .env; set +o allexport
+set -o allexport; source ./.env; set +o allexport
 
 # set GCP project
 gcloud config set project $DL_GCP_ID
